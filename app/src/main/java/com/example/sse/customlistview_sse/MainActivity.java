@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         pref = this.getSharedPreferences("MyPref", MODE_PRIVATE);
 
 
-        
+
         lvEpisodes = (ListView)findViewById(R.id.lvEpisodes);
         lvAdapter = new MyCustomAdapter(this.getBaseContext());  //instead of passing the boring default string adapter, let's pass our own, see class MyCustomAdapter below!
         lvEpisodes.setAdapter(lvAdapter);
@@ -68,17 +69,34 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.mnu_zero) {
-            Toast.makeText(getBaseContext(), "Menu Zero.", Toast.LENGTH_LONG).show();
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://shop.startrek.com"));
+            startActivity(browserIntent);
             return true;
         }
 
         if (id == R.id.mnu_one) {
-            Toast.makeText(getBaseContext(), "Ring ring, Hi Mom.", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Intent.ACTION_DIAL);
+            intent.setData(Uri.parse("tel:1-800-startrk"));
+            startActivity(intent);
             return true;
         }
 
-        if (id == R.id.mnu_three) {
-             Toast.makeText(getBaseContext(), "Hangup it's a telemarketer.", Toast.LENGTH_LONG).show();
+        if (id == R.id.mnu_two) {
+            Intent sendIntent = new Intent(Intent.ACTION_VIEW);
+            sendIntent.setData(Uri.parse("sms:111-111-1111"));
+            sendIntent.putExtra("sms_body", "Ouch!");
+            startActivity(sendIntent);
+            return true;
+        }
+
+        if (id == R.id.mnu_three){
+            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.live_long_and_prosper);
+            mediaPlayer.start();
+            return true;
+        }
+
+        if (id == R.id.mnu_four){
+            startActivity(new Intent(MainActivity.this, VideoActivity.class));
             return true;
         }
 
