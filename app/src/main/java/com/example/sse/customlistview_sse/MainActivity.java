@@ -3,19 +3,15 @@ package com.example.sse.customlistview_sse;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -24,10 +20,7 @@ import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,17 +29,11 @@ public class MainActivity extends AppCompatActivity {
     private
     ListView lvEpisodes;     //Reference to the listview GUI component
     ListAdapter lvAdapter;   //Reference to the Adapter used to populate the listview.
-    SharedPreferences pref;
-    RatingBar starBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        pref = this.getSharedPreferences("MyPref", MODE_PRIVATE);
-
-
 
         lvEpisodes = (ListView)findViewById(R.id.lvEpisodes);
         lvAdapter = new MyCustomAdapter(this.getBaseContext());  //instead of passing the boring default string adapter, let's pass our own, see class MyCustomAdapter below!
@@ -106,10 +93,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        starBar = findViewById(R.id.rbEpisode);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putInt("numStars", starBar.getNumStars());
-        editor.commit();
+
+
     }
 
 }
@@ -159,6 +144,10 @@ class MyCustomAdapter extends BaseAdapter {
     Button btnRandom;
     Context context;   //Creating a reference to our context object, so we only have to get it once.  Context enables access to application specific resources.
                        // Eg, spawning & receiving intents, locating the various managers.
+    SharedPreferences pref;
+    //float[] ratingsList = new float[7];
+    float rating;
+
 
 //STEP 2: Override the Constructor, be sure to:
     // grab the context, we will need it later, the callback gets it as a parm.
@@ -183,6 +172,8 @@ class MyCustomAdapter extends BaseAdapter {
         episodeImages.add(R.drawable.st_platos_stepchildren__kirk_spock);
         episodeImages.add(R.drawable.st_the_naked_time__sulu_sword);
         episodeImages.add(R.drawable.st_the_trouble_with_tribbles__kirk_tribbles);
+
+        initPrefs(this.context);
     }
 
 //STEP 3: Override and implement getCount(..),
@@ -205,6 +196,8 @@ class MyCustomAdapter extends BaseAdapter {
     public long getItemId(int position) {
         return position;  //Another call we aren't using, but have to do something since we had to implement (base is abstract).
     }
+
+
 
 //THIS IS WHERE THE ACTION HAPPENS.  getView(..) is how each row gets rendered.
 //STEP 5: Easy as A-B-C
@@ -233,10 +226,13 @@ class MyCustomAdapter extends BaseAdapter {
         ImageView imgEpisode = (ImageView) row.findViewById(R.id.imgEpisode);  //Q: Notice we prefixed findViewByID with row, why?  A: Row, is the container.
         TextView tvEpisodeTitle = (TextView) row.findViewById(R.id.tvEpisodeTitle);
         TextView tvEpisodeDescription = (TextView) row.findViewById(R.id.tvEpisodeDescription);
+        RatingBar ratingBar = (RatingBar) row.findViewById(R.id.rbEpisode);
+
 
         tvEpisodeTitle.setText(episodes[position]);
         tvEpisodeDescription.setText(episodeDescriptions[position]);
         imgEpisode.setImageResource(episodeImages.get(position).intValue());
+        ratingBar.setRating(rating);
 
         btnRandom = (Button) row.findViewById(R.id.btnRandom);
         final String randomMsg = ((Integer)position).toString() +": "+ episodeDescriptions[position];
@@ -250,12 +246,27 @@ class MyCustomAdapter extends BaseAdapter {
             }
         });
 
+        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+
+                SharedPreferences.Editor myEditor = pref.edit();
+                myEditor.putFloat("ratingKey", ratingBar.getRating());
+                myEditor.commit();
+
+            }
+        });
+
 //STEP 5c: That's it, the row has been inflated and filled with data, return it.
         return row;  //once the row is fully constructed, return it.  Hey whatif we had buttons, can we target onClick Events within the rows, yep!
 //return convertView;
 
     }
 
+    private void initPrefs(Context context){
+        pref = this.context.getSharedPreferences("pref", 0);
+        rating = pref.getFloat("ratingKey", 0.0f);
+    }
 
 
     ///Helper method to get the drawables...///
